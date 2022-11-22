@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 import supabase from "./config/supabaseClient";
+
 function App() {
   var people = [
     {
@@ -26,7 +27,7 @@ function App() {
 
   const [fetchError, setFetchError] = useState(null);
   const [users, setUsers] = useState(null);
-
+  const [nameSelected, setNameSelected] = useState(false);
   useEffect(() => {
     const fetchUsers = async () => {
       const { data, error } = await supabase.from("secretSanta").select();
@@ -51,7 +52,7 @@ function App() {
   const verifyGiftPartners = (people) =>
     people.every((person) => person.current);
 
-  const shuffle = function shuffle(array) {
+  var shuffle = function shuffle(array) {
     var currentIndex = array.length,
       temporaryValue,
       randomIndex;
@@ -65,14 +66,15 @@ function App() {
       array[randomIndex] = temporaryValue;
     }
   };
-  const assignGiftPartners = function (people) {
+
+  var assignGiftPartners = function (people) {
     var peopleLeftToAssign = people.map((person) => person.name);
 
     people.forEach(function (person) {
       var choices = peopleLeftToAssign.filter(function (personToAssign) {
         return (
           personToAssign !== person.name &&
-          personToAssign !== person.spouse &&
+          personToAssign !== person.partner &&
           person.past.indexOf(personToAssign) === -1
         );
       });
@@ -97,25 +99,29 @@ function App() {
     }
   }
 
-  document.getElementById("mapped-names").innerHTML = people
-    .map(
-      (person) => `
-    <option>${person.name}</option>`
-    )
-    .join("");
+  console.log(people);
+
+  document.getElementById("mapped-names").innerHTML =
+    `<option>Select your name...</option>` +
+    people.map((person) => `<option>${person.name}</option>`).join("");
 
   var e = document.getElementById("mapped-names");
-  var text = e.options[e.selectedIndex].text;
 
-  const handleSubmit = async (e) => {
-    const { data } = await supabase.from("secretSanta").insert(people).select();
+  const handleInsertData = async (e) => {
+    await supabase.from("secretSanta").insert(people).select();
   };
-  handleSubmit();
+
+  handleInsertData();
 
   function filterArray(text) {
-    return people.filter((person) => person.name === text);
+    return users.filter((user) => user.name === text);
   }
+
+  console.log("123", users);
+
   function onChange() {
+    var text = e.options[e.selectedIndex].text;
+
     document.getElementById("mapped-results").innerHTML = filterArray(text).map(
       (person) => `<div>
       <p>Your name: ${person.name}</p>
@@ -124,6 +130,18 @@ function App() {
     );
   }
   e.onchange = onChange;
+
+  return (
+    <div>
+      <h1>Secret Santa game</h1>
+      <select
+        id="mapped-names"
+        onChange={() => [onChange(), setNameSelected(true)]}
+        disabled={nameSelected}
+      />
+      <div id="mapped-results"></div>
+    </div>
+  );
 }
 
 export default App;
