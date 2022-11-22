@@ -30,6 +30,20 @@ html {
 .main-content-wrapper h1 {
   font-size: 80px;
   color: #cc231e;
+  text-align: center;
+}
+
+@media (min-width: 320px) {
+  .main-content-wrapper h1 {
+    font-size: 65px;
+  }
+  .wrapper {
+    height: calc(100vh - 500px);
+  }
+
+  .main-content-wrapper {
+    width: 300px;
+  }
 }
 
 .styled-input {
