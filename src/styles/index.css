@@ -29,16 +29,17 @@ html {
 
 .main-content-wrapper h1 {
   font-size: 80px;
-  color: #cc231e;
+  color: #fff;
   text-align: center;
+  line-height: 60px;
 }
 
 @media (min-width: 320px) {
   .main-content-wrapper h1 {
-    font-size: 65px;
+    font-size: 60px;
   }
   .wrapper {
-    height: calc(100vh - 500px);
+    height: calc(100vh - 380px);
   }
 
   .main-content-wrapper {
