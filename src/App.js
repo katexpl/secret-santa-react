@@ -134,7 +134,7 @@ function App() {
         <div
           className="select-wrapper"
           style={{
-            opacity: nameSelected ? "30%" : "100%",
+            opacity: nameSelected ? "0" : "100%",
           }}
         >
           <select
