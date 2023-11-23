@@ -63,13 +63,13 @@ npm start
 
 3. Add participants to the Secret Santa game by entering their names. [TO BE ADDED]
 
-4. Selecting Secret Santas
+### Selecting Secret Santas
 
-5. Each participant can select their name from the dropdown menu.
+1. Each participant can select their name from the dropdown menu.
 
-6. Once a participant has selected their name, the assigned Secret Santa will be displayed.
+2. Once a participant has selected their name, the assigned Secret Santa will be displayed.
 
-7. The participant's selection is saved, and they won't be able to choose again.
+3. The participant's selection is saved, and they won't be able to choose again.
 
 ## Contributing
 
