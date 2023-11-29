@@ -28,8 +28,11 @@ function SecretSantaApp() {
 
   useEffect(() => {
     const isSelectionDisabled = localStorage.getItem("secretSantaSelected");
+    const storedReceiver = localStorage.getItem("secretSantaReceiver");
 
-    if (isSelectionDisabled) {
+    if (isSelectionDisabled && storedReceiver) {
+      setReceiver(storedReceiver);
+
       const selectInput = document.getElementById("mapped-names");
       if (selectInput) {
         selectInput.disabled = true;
@@ -46,38 +49,49 @@ function SecretSantaApp() {
   };
 
   const generateSecretSantas = async (participants) => {
-    const shuffledParticipants = shuffleParticipantsArray([...participants], 1);
-    const updatedParticipants = shuffledParticipants.map((participant, index) => {
-      const possibleSantas = shuffledParticipants.filter(
-        (santa) =>
-          santa.name !== participant.name &&
-          santa.name !== participant.partner &&
-          !(participant.past && JSON.parse(participant.past).includes(santa.name))
-      );
-      const nextIndex = index % possibleSantas.length;
-      const secretSanta = possibleSantas[nextIndex];
+    const updatedParticipants = [...participants];
+    const shuffledParticipants = shuffleParticipantsArray(updatedParticipants, 0);
 
-      const newPast = participant.past
-        ? JSON.parse(participant.past).concat(secretSanta.name)
-        : [secretSanta.name];
-      return {
-        ...participant,
-        current: secretSanta.name,
-        past: JSON.stringify(newPast),
-      };
-    });
+    const getNextAvailableParticipant = (currentIndex, usedNames) => {
+      let nextIndex = (currentIndex + 1) % shuffledParticipants.length;
 
-    updatedParticipants.forEach(async (participant) => {
-      const { error } = await supabase
-        .from("secretSanta")
-        .update({ current: participant.current, past: participant.past })
-        .eq("id", participant.id);
-      if (error) {
-        console.error("Error updating participant:", error.message);
+      while (
+        usedNames.has(shuffledParticipants[nextIndex].name) ||
+        updatedParticipants[currentIndex].past === shuffledParticipants[nextIndex].name ||
+        updatedParticipants[currentIndex].partner === shuffledParticipants[nextIndex].name
+      ) {
+        nextIndex = (nextIndex + 1) % shuffledParticipants.length;
       }
+
+      return nextIndex;
+    };
+
+    const usedNames = new Set();
+
+    for (let i = 0; i < shuffledParticipants.length; i++) {
+      const currentParticipant = shuffledParticipants[i];
+      const nextIndex = getNextAvailableParticipant(i, usedNames);
+      const nextParticipant = shuffledParticipants[nextIndex];
+
+      usedNames.add(nextParticipant.name);
+
+      currentParticipant.current = nextParticipant.name;
+    }
+
+    console.log(updatedParticipants);
+    await updateDatabase(updatedParticipants);
+    setParticipants(shuffledParticipants);
+  };
+
+  const updateDatabase = async (updatedParticipants) => {
+    const updates = updatedParticipants.map((p) => {
+      return supabase
+        .from("secretSanta")
+        .update({ current: p.current, past: p.past })
+        .eq("id", p.id);
     });
 
-    setParticipants(updatedParticipants);
+    await Promise.all(updates);
   };
 
   const handleParticipantSelect = (event) => {
@@ -99,9 +113,11 @@ function SecretSantaApp() {
   const generateReceiver = () => {
     if (selectedParticipant) {
       const receiverName = selectedParticipant.current;
-      setReceiver(receiverName);
 
       localStorage.setItem("secretSantaSelected", "true");
+      localStorage.setItem("secretSantaReceiver", receiverName);
+
+      setReceiver(receiverName);
 
       const selectInput = document.getElementById("mapped-names");
       if (selectInput) {
@@ -114,9 +130,7 @@ function SecretSantaApp() {
     <div className="wrapper">
       <div className="main-content-wrapper">
         <h1>Secret Santa Game</h1>
-        <div
-          className="select-wrapper"
-        >
+        <div className="select-wrapper">
           <select
             id="mapped-names"
             className="styled-input"
